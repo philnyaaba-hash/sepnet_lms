@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import 'database_factory_platform.dart';
+import 'schema_migrations.dart';
 
 /// Owns the single SQLite connection used by the app.
 ///
@@ -13,6 +14,10 @@ import 'database_factory_platform.dart';
 ///  * `submissions` - the durable submission queue + history.
 ///  * `exercises`   - cached exercise metadata for offline use.
 ///  * `sync_meta`   - small key/value bookkeeping (last sync, schema info).
+///
+/// Schema changes live in `schema_migrations.dart`. This class deliberately
+/// keeps no schema SQL of its own beyond delegating to [createLatestSchema],
+/// so that a fresh install and an upgraded install cannot drift apart.
 ///
 /// Sensitive material (auth tokens, secrets) is **never** stored here. Those
 /// belong in platform secure storage; see `docs/SECURITY_AND_PRIVACY.md`.
@@ -35,9 +40,16 @@ class AppDatabase {
 
   bool get isOpen => _db != null;
 
-  static const int _schemaVersion = 1;
+  /// The schema version this build expects. Defined once, in
+  /// `schema_migrations.dart`, next to the migrations that produce it.
+  static const int schemaVersion = kSchemaVersion;
 
   /// Opens (and migrates) the database.
+  ///
+  /// A fresh install runs [createLatestSchema]. An existing database is moved
+  /// forward by `runMigrations`, which refuses to open if any schema version in
+  /// between has no registered migration — so a version bump without a
+  /// migration fails here instead of losing a learner's drafts.
   Future<void> open() async {
     if (_db != null) return;
     final factory = _factory ?? _platformFactory();
@@ -45,65 +57,17 @@ class AppDatabase {
     _db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: _schemaVersion,
+        version: schemaVersion,
         onConfigure: (db) async {
           // Required for reliable foreign-key enforcement in SQLite.
           await db.execute('PRAGMA foreign_keys = ON');
         },
-        onCreate: (db, version) async {
-          final batch = db.batch();
-          batch.execute('''
-            CREATE TABLE drafts (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              learner_ref TEXT NOT NULL,
-              exercise_id TEXT NOT NULL,
-              exercise_version INTEGER NOT NULL,
-              code TEXT NOT NULL,
-              updated_at INTEGER NOT NULL,
-              UNIQUE(learner_ref, exercise_id)
-            )
-          ''');
-          batch.execute('''
-            CREATE TABLE submissions (
-              submission_id TEXT PRIMARY KEY,
-              learner_ref TEXT NOT NULL,
-              exercise_id TEXT NOT NULL,
-              exercise_version INTEGER NOT NULL,
-              code TEXT NOT NULL,
-              created_at INTEGER NOT NULL,
-              sync_state TEXT NOT NULL,
-              attempt_count INTEGER NOT NULL DEFAULT 0,
-              last_attempt_at INTEGER,
-              server_response_ref TEXT,
-              server_status TEXT,
-              last_error TEXT
-            )
-          ''');
-          batch.execute(
-            'CREATE INDEX idx_submissions_state ON submissions(sync_state)',
-          );
-          batch.execute('''
-            CREATE TABLE exercises (
-              exercise_id TEXT PRIMARY KEY,
-              lesson_id TEXT,
-              title TEXT NOT NULL,
-              instructions TEXT NOT NULL,
-              objectives TEXT NOT NULL,
-              starter_code TEXT NOT NULL,
-              requirements TEXT NOT NULL,
-              hints TEXT NOT NULL,
-              version INTEGER NOT NULL,
-              updated_at INTEGER NOT NULL
-            )
-          ''');
-          batch.execute('''
-            CREATE TABLE sync_meta (
-              key TEXT PRIMARY KEY,
-              value TEXT NOT NULL
-            )
-          ''');
-          await batch.commit(noResult: true);
-        },
+        onCreate: (db, version) => createLatestSchema(db),
+        onUpgrade: (db, oldVersion, newVersion) => runMigrations(
+          db,
+          from: oldVersion,
+          to: newVersion,
+        ),
       ),
     );
   }
