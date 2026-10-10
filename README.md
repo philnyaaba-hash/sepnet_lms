@@ -38,6 +38,7 @@ that document is the one to read before believing any row above.
 | [docs/SECURITY_AND_PRIVACY.md](docs/SECURITY_AND_PRIVACY.md) | Execution limits, secrets, and child-safety defaults. |
 | [docs/BUILD_AND_RELEASE.md](docs/BUILD_AND_RELEASE.md) | Getting an Android build running. |
 | [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | The honest list of what is untested or incomplete. |
+| [docs/PRODUCT_REFERENCE.md](docs/PRODUCT_REFERENCE.md) | Peer-app notes: copy tone, gamification worth adopting, what we will not copy. |
 
 ---
 
