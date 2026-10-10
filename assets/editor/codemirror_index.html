@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>SkillBridge Code Editor (CodeMirror)</title>
+  <!--
+    OPTIONAL CodeMirror 6 editor host.
+
+    This file is the *evaluated alternative* to the Flutter-native editor that
+    ships by default. It is kept in the source tree so the team can switch or
+    A/B test without re-doing the evaluation.
+
+    To enable it you must:
+      1. Add `webview_flutter` (and, for desktop, a Windows webview package).
+      2. Bundle CodeMirror 6 built assets under assets/editor/ (see
+         docs/CODEMIRROR_EVALUATION.md for the exact esbuild command).
+      3. Implement a WebView-backed CodeEditorController.
+
+    The default build does NOT load this file, so no WebView dependency is
+    required to compile or test the app.
+  -->
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #0f172a; }
+    #editor { height: 100%; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div id="editor"></div>
+  <script type="module">
+    // Placeholder host: CodeMirror 6 modules would be imported here.
+    // Intentionally inert so the asset can ship without the dependency.
+    document.getElementById('editor').textContent =
+      'CodeMirror host loaded (optional). See docs/CODEMIRROR_EVALUATION.md';
+  </script>
+</body>
+</html>

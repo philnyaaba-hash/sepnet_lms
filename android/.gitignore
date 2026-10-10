@@ -1,0 +1,14 @@
+# The Gradle wrapper (gradlew, gradlew.bat, gradle-wrapper.jar,
+# gradle-wrapper.properties) is committed on purpose: a clone must be able to
+# build without installing Gradle separately, and CI depends on it.
+/.gradle
+/captures/
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/*.keystore
+**/*.jks

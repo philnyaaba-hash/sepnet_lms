@@ -1,0 +1,55 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+*.jks
+*.keystore
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+# Windows
+windows/flutter/ephemeral/
+
+# Environment / secrets (never commit real credentials)
+.env
+.env.*
+*.secrets.dart
+config/production.json
+
+# Serious Python build staging (see docs/BUILD_AND_RELEASE.md)
+build/python-app/
+build/python-site-packages/
+
+# Misc
+coverage/
+*.log
+.DS_Store
+
+# Scratch output from tool/ shell commands
+tool/*.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
+Thumbs.db

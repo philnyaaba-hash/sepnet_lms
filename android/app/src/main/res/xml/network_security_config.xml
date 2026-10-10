@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Production traffic to the SkillBridge LMS must be TLS. The only exception is
+  the embedded Python runtime, which is a loopback-only HTTP server started by
+  Serious Python and reached over http://127.0.0.1:8791. Exempting loopback
+  explicitly (rather than leaving cleartext on globally) keeps the LMS call
+  encrypted while letting the runtime talk to itself.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false"/>
+</network-security-config>
