@@ -20,9 +20,10 @@ a Learning Management System (LMS) — even when the network drops out.
 | Durable submission queue with idempotency keys and exponential backoff | `lib/features/offline_sync/submission_sync_service.dart` | `test/submission_sync_service_test.dart` |
 | Mock LMS with server-authoritative grading and de-duplicated rewards | `lib/integrations/lms/mock_lms_client.dart` | `test/submission_sync_service_test.dart`, `test/widget_test.dart` |
 | Full UI: home, editor, exercise details, progress, settings | `lib/features/` | `test/widget_test.dart` |
+| The editor and a real interpreter wired together | `lib/features/editor/editor_controller.dart` | `test/editor_real_runtime_test.dart` (drives the real editor against host CPython) |
 
-`flutter analyze` is clean and `flutter test` runs **120 tests** across those
-seven suites. What is *not* verified — chiefly, that the app runs on a real
+`flutter analyze` is clean and `flutter test` runs **122 tests** across those
+eight suites. What is *not* verified — chiefly, that the app runs on a real
 phone — is listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md), and
 that document is the one to read before believing any row above.
 
@@ -60,13 +61,32 @@ flutter test        # expected: all suites green
 ### Run on desktop (real Python via a host interpreter)
 
 ```powershell
+# One-off, only on a machine without Developer Mode:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tool\link_windows_plugins.ps1
+
 flutter run -d windows
 ```
 
 On desktop the app selects `ProcessPythonRuntime`, which spawns a short-lived
 CPython child process running `python_app/harness_cli.py`. This is the *same*
 executor that ships on the phone, so what you test on the desktop is what the
-learner gets.
+learner gets. The interpreter is whatever `python` resolves to on `PATH`.
+
+The first command is needed only because `flutter build windows` creates one
+symlink per plugin, and a non-administrator needs Developer Mode enabled to
+create symlinks on Windows. It pre-creates them as junctions instead, which need
+no privilege. See
+[docs/BUILD_AND_RELEASE.md](docs/BUILD_AND_RELEASE.md#desktop-smoke-run).
+
+### Run on the web (UI and offline storage only)
+
+```powershell
+dart run sqflite_common_ffi_web:setup      # once: writes web/sqlite3.wasm
+flutter run -d web-server --web-port 8787 --web-hostname 127.0.0.1
+```
+
+Web has no `dart:io` and no `dart:ffi`, so it always selects `FakePythonRuntime`
+and **does not execute Python**. It is a UI and offline-storage demonstration.
 
 ### Run on Android
 

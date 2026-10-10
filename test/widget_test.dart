@@ -1,72 +1,28 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:skillbridge_python_lab/app/app.dart';
-import 'package:skillbridge_python_lab/core/config/app_config.dart';
 import 'package:skillbridge_python_lab/core/di/app_dependencies.dart';
-import 'package:skillbridge_python_lab/core/security/id_generator.dart';
-import 'package:skillbridge_python_lab/core/storage/app_database.dart';
-import 'package:skillbridge_python_lab/core/storage/draft_repository.dart';
-import 'package:skillbridge_python_lab/core/storage/exercise_repository.dart';
-import 'package:skillbridge_python_lab/core/storage/settings_repository.dart';
-import 'package:skillbridge_python_lab/core/storage/submission_repository.dart';
 import 'package:skillbridge_python_lab/features/editor/widgets/output_console.dart';
 import 'package:skillbridge_python_lab/features/home/connectivity_controller.dart';
-import 'package:skillbridge_python_lab/features/offline_sync/connectivity_service.dart';
-import 'package:skillbridge_python_lab/features/offline_sync/submission_sync_service.dart';
 import 'package:skillbridge_python_lab/features/python_runtime/fake_python_runtime.dart';
 import 'package:skillbridge_python_lab/features/settings/settings_controller.dart';
 import 'package:skillbridge_python_lab/features/submissions/submission.dart';
-import 'package:skillbridge_python_lab/integrations/lms/mock_lms_client.dart';
+
+import 'support/test_dependencies.dart';
 
 /// Builds an in-memory dependency graph so the real UI can be exercised
 /// without a device, a network, or an interpreter.
+///
+/// Delegates to [buildTestDependencies]; see `support/test_dependencies.dart`.
 Future<AppDependencies> createTestDependencies({
   bool online = true,
   FakePythonRuntime? runtime,
-}) async {
-  SharedPreferences.setMockInitialValues({});
-  sqfliteFfiInit();
-
-  final dbPath = p.join(Directory.systemTemp.path,
-      'sb_widget_${DateTime.now().microsecondsSinceEpoch}.db');
-  // In-process FFI: see app_database.dart for why the isolate-backed factory is
-  // not usable inside `testWidgets`.
-  final database = AppDatabase(factory: databaseFactoryFfiNoIsolate, path: dbPath);
-  await database.open();
-
-  final settings = await SettingsRepository.create();
-  const learnerRef = 'test-learner';
-  await settings.setLearnerRef(learnerRef);
-
-  final submissions = SubmissionRepository(database);
-  final lms = MockLmsClient();
-  final connectivity = FakeConnectivityService(online: online);
-  final resolvedRuntime = runtime ?? FakePythonRuntime();
-
-  return AppDependencies(
-    config: AppConfig.test(),
-    database: database,
-    settings: settings,
-    drafts: DraftRepository(database),
-    submissions: submissions,
-    exercises: ExerciseRepository(database),
-    lmsClient: lms,
-    connectivity: connectivity,
-    runtime: resolvedRuntime,
-    syncService: SubmissionSyncService(
-      lmsClient: lms,
-      submissions: submissions,
-      connectivity: connectivity,
-    ),
-    idGenerator: IdGenerator(),
-    learnerRef: learnerRef,
+}) {
+  return buildTestDependencies(
+    runtime: runtime ?? FakePythonRuntime(),
+    online: online,
   );
 }
 

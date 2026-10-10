@@ -19,6 +19,9 @@ dependencies:
   # Local storage (offline-first drafts, submissions, exercise cache).
   sqflite: ^2.4.1
   sqflite_common_ffi: ^2.3.4+4
+  # Web build has no dart:ffi, so SQLite runs as wasm in a shared worker.
+  # See lib/core/storage/database_factory_web.dart.
+  sqflite_common_ffi_web: ^1.2.0
   path: ^1.9.0
   path_provider: ^2.1.5
 

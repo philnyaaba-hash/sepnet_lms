@@ -49,6 +49,13 @@ coverage/
 # Scratch output from tool/ shell commands
 tool/*.txt
 
+# Generated into web/ by `dart run sqflite_common_ffi_web:setup`.
+# Not vendored: the web build fetches a third-party binary, and this is a
+# child-safety app, so the step stays explicit and visible in CI.
+# See docs/BUILD_AND_RELEASE.md.
+web/sqlite3.wasm
+web/sqflite_sw.js
+
 # Python bytecode
 __pycache__/
 *.pyc

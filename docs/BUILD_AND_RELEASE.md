@@ -84,12 +84,67 @@ they never silently pass.
 The fastest way to exercise the whole app with real Python:
 
 ```powershell
+# One-off, only needed on a machine without Developer Mode (see below).
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tool\link_windows_plugins.ps1
+
 flutter run -d windows
 ```
 
 This selects `ProcessPythonRuntime`, which spawns
 `python_app/harness_cli.py` in a child process for each Run. That is the same
 executor the phone uses, so a desktop smoke test is meaningful.
+
+Verified on this machine: `flutter build windows --debug` produces
+`build\windows\x64\runner\Debug\skillbridge_python_lab.exe`, which launches and
+renders the seeded home screen. Launch it from the project root — the runtime
+finds the harness by walking up from the current directory
+(`ProcessPythonRuntime.resolveHarnessPath`). The interpreter is whatever `python`
+resolves to on `PATH`; override with `SB_PYTHON_EXECUTABLE`.
+
+**Why the extra script.** `flutter build windows` creates one symlink per
+Windows plugin under `windows/flutter/ephemeral/.plugin_symlinks/`, and on
+Windows a real symlink needs `SeCreateSymbolicLinkPrivilege`. A
+non-administrator only has that with Developer Mode on, and without it the build
+stops with "Building with plugins requires symlink support". Enabling Developer
+Mode (`start ms-settings:developers`) is the supported fix. Where that is not
+possible, the script pre-creates those entries as **directory junctions**, which
+need no privilege: Flutter skips any link that already exists, and Dart's
+`Link.existsSync()` reports `true` for a junction but `false` for a plain
+directory. Run it after `flutter pub get` and before the build, because a
+`pub get` that changes the plugin list recreates that directory.
+
+Note the desktop artifact is a Debug build and links an unstripped
+`python314_d.dll`; no release build has been produced.
+
+## Web build
+
+Web is a supported **UI** target only. A browser has neither `dart:io` nor
+`dart:ffi`, so `AppConfig` always resolves to `FakePythonRuntime` there and a
+pressing Run returns a canned result. A working web build is *not* evidence that
+Python executes — see `docs/KNOWN_LIMITATIONS.md`, limitation 6. The trade-off
+is that the native and embedded runtimes sit behind conditional imports
+(`lib/features/python_runtime/python_runtime_factory_*.dart`,
+`lib/core/storage/database_factory_*.dart`), so the browser never compiles them.
+
+`sqlite3.wasm` and the shared worker are generated into `web/`, not vendored:
+
+```powershell
+dart run sqflite_common_ffi_web:setup   # writes web/sqlite3.wasm, web/sqflite_sw.js
+flutter build web --release            # -> build/web, ~40 MB total
+```
+
+`sqflite_common_ffi_web` runs SQLite as wasm in a shared worker and persists to
+IndexedDB, so the offline story still holds on web.
+
+To serve it:
+
+```powershell
+flutter run -d web-server --web-port 8787 --web-hostname 127.0.0.1
+```
+
+The **Wasm** target does *not* build: `serious_python` imports `dart:ffi`, and
+dart2js rejects it without `--enable-experimental-ffi`. The default JS target is
+what the commands above produce.
 
 ## Android build
 

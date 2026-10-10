@@ -153,9 +153,14 @@ class _ErrorBlock extends StatelessWidget {
             children: [
               const Icon(Icons.lightbulb_outline, color: Color(0xFFF5A623), size: 18),
               const SizedBox(width: 6),
-              Text(
-                exception.friendlyLabel,
-                style: const TextStyle(color: Color(0xFFFFD9A0), fontWeight: FontWeight.w600),
+              // Expanded so a long label wraps instead of pushing past the
+              // console edge on a narrow phone.
+              Expanded(
+                child: Text(
+                  exception.friendlyLabel,
+                  style: const TextStyle(
+                      color: Color(0xFFFFD9A0), fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),
@@ -168,17 +173,23 @@ class _ErrorBlock extends StatelessWidget {
             const SizedBox(height: 8),
             Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: EdgeInsets.zero,
-                title: const Text('Details', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                children: [
-                  SelectableText(
-                    exception.traceback,
-                    style: const TextStyle(
-                        fontFamily: 'monospace', fontSize: 11, color: Color(0xFFB9C2CF)),
-                  ),
-                ],
+              // A Material of its own: the error block paints a coloured
+              // DecoratedBox, and without this the ListTile would paint its
+              // background and ink splash on that ancestor instead.
+              child: Material(
+                type: MaterialType.transparency,
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: EdgeInsets.zero,
+                  title: const Text('Details', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  children: [
+                    SelectableText(
+                      exception.traceback,
+                      style: const TextStyle(
+                          fontFamily: 'monospace', fontSize: 11, color: Color(0xFFB9C2CF)),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

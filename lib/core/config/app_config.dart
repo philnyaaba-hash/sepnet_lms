@@ -1,6 +1,6 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/foundation.dart';
+
+import 'platform.dart';
 
 /// Which concrete [PythonRuntime] implementation the app should build.
 enum PythonRuntimeKind {
@@ -96,7 +96,7 @@ class AppConfig {
         return PythonRuntimeKind.fake;
     }
     if (kIsWeb) return PythonRuntimeKind.fake;
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (isAndroid || isIOS) {
       return PythonRuntimeKind.seriousPython;
     }
     return PythonRuntimeKind.process;
@@ -104,6 +104,6 @@ class AppConfig {
 
   static String _defaultPythonExecutable() {
     if (kIsWeb) return 'python';
-    return Platform.isWindows ? 'python' : 'python3';
+    return isWindows ? 'python' : 'python3';
   }
 }
