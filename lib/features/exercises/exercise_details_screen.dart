@@ -103,17 +103,40 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen> {
           ],
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () async {
-              await Navigator.of(context).pushNamed('/editor', arguments: exercise);
-              if (mounted) await _loadStatus();
-            },
-            icon: const Icon(Icons.code),
-            label: const Text('Start coding'),
+            onPressed: () => _start(),
+            icon: Icon(exercise.hasLesson ? Icons.menu_book_outlined : Icons.code),
+            label: Text(exercise.hasLesson ? 'Start with a quick lesson' : 'Start coding'),
           ),
           const SizedBox(height: 40),
         ],
       ),
     );
+  }
+
+  /// Entry point for the primary button.
+  ///
+  /// With a lesson: teaching first, then straight into the editor on CONTINUE,
+  /// so the learner never has to navigate back through the details screen to
+  /// reach the task. Without one: straight to the editor, as before.
+  Future<void> _start() async {
+    final exercise = widget.exercise;
+    if (!exercise.hasLesson) {
+      await Navigator.of(context).pushNamed('/editor', arguments: exercise);
+    } else {
+      await Navigator.of(context).pushNamed(
+        '/lesson',
+        arguments: {
+          'exercise': exercise,
+          'onFinished': () {
+            // Replace rather than push so Back from the editor does not
+            // re-enter the lesson the learner has already completed.
+            Navigator.of(context).pushReplacementNamed('/editor',
+                arguments: exercise);
+          },
+        },
+      );
+    }
+    if (mounted) await _loadStatus();
   }
 }
 

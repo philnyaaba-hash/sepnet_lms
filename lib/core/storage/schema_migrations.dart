@@ -42,7 +42,7 @@ import 'package:sqflite/sqflite.dart';
 ///
 /// Bumping this is only safe together with a new entry in [kMigrations].
 /// `runMigrations` treats the two getting out of step as a hard error.
-const int kSchemaVersion = 2;
+const int kSchemaVersion = 3;
 
 // ---------------------------------------------------------------------------
 // SQL for the latest schema.
@@ -91,9 +91,16 @@ const String _createExercisesTable = '''
     requirements TEXT NOT NULL,
     hints TEXT NOT NULL,
     version INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL
+    updated_at INTEGER NOT NULL,
+    lesson TEXT
   )
 ''';
+
+// `lesson` is deliberately declared **last**, not next to the other content
+// columns. SQLite's `ALTER TABLE ADD COLUMN` always appends, so this is the
+// only ordering under which a fresh install and an upgraded install produce
+// byte-identical column orders. `test/migration_test.dart` asserts that
+// convergence, and it is what keeps the two paths from drifting.
 
 const String _createSyncMetaTable = '''
   CREATE TABLE sync_meta (
@@ -183,6 +190,13 @@ const List<MigrationStep> kMigrations = [
         'Add composite indexes for the submission queue and the draft list.',
     apply: _migration2Indexes,
   ),
+  MigrationStep(
+    version: 3,
+    description:
+        'Add the teaching `lesson` column to exercises so lessons are cached '
+        'for offline use.',
+    apply: _migration3Lesson,
+  ),
 ];
 
 Future<void> _migration2Indexes(DatabaseExecutor db) async {
@@ -195,6 +209,14 @@ Future<void> _migration2Indexes(DatabaseExecutor db) async {
     indexSubmissionsLearnerCreated,
   ]) {
     await db.execute(statement);
+  }
+}
+
+Future<void> _migration3Lesson(DatabaseExecutor db) async {
+  // A plain nullable ADD COLUMN: SQLite supports it, no rebuild is needed, and
+  // existing rows get NULL which every reader treats as "no lesson yet".
+  if (!await columnExists(db, 'exercises', 'lesson')) {
+    await db.execute('ALTER TABLE exercises ADD COLUMN lesson TEXT');
   }
 }
 

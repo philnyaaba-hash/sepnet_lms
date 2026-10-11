@@ -1,3 +1,5 @@
+import '../lessons/lesson.dart';
+
 /// A Python practice exercise, normally fetched from the LMS and cached locally
 /// so it remains available offline.
 class Exercise {
@@ -13,6 +15,7 @@ class Exercise {
     this.version = 1,
     this.sampleStdin = const [],
     this.expectedOutput,
+    this.lesson = const Lesson(steps: []),
   });
 
   final String id;
@@ -40,6 +43,12 @@ class Exercise {
   /// authoritative grade always comes from the server.
   final String? expectedOutput;
 
+  /// Teaching shown before the exercise. Empty for exercises that have none,
+  /// in which case the details screen goes straight to the task.
+  final Lesson lesson;
+
+  bool get hasLesson => lesson.isNotEmpty;
+
   factory Exercise.fromJson(Map<String, dynamic> json) => Exercise(
         id: json['id'] as String,
         lessonId: json['lessonId'] as String?,
@@ -52,6 +61,7 @@ class Exercise {
         version: (json['version'] as num?)?.toInt() ?? 1,
         sampleStdin: _stringList(json['sampleStdin']),
         expectedOutput: json['expectedOutput'] as String?,
+        lesson: Lesson.fromJson(json['lesson']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -66,6 +76,7 @@ class Exercise {
         'version': version,
         'sampleStdin': sampleStdin,
         'expectedOutput': expectedOutput,
+        if (lesson.isNotEmpty) 'lesson': lesson.toJson(),
       };
 
   static List<String> _stringList(Object? value) {

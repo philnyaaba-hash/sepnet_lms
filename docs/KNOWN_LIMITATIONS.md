@@ -11,15 +11,17 @@ stale caveats behind.
 | Python really executes, with stdout/stderr/exception/timeout/cancel | 15 tests against host CPython 3.14.8 (`test/python_runtime_process_test.dart`) | High — runs on a laptop |
 | Syntax highlighting and editor input behaviour | `test/python_highlighter_test.dart`, `test/python_input_formatter_test.dart` | High |
 | Offline drafts and the submission queue in SQLite | `test/storage_test.dart` (real SQLite via ffi) | High |
-| Schema upgrades preserve learner work | `test/migration_test.dart` builds a real v1 database full of drafts, submissions in all five queue states and cached exercises, then opens it at v2 and asserts every row survives | High |
-| A fresh install and an upgraded install reach the same schema | `test/migration_test.dart` compares a canonical table/column/index signature between a straight-to-v2 install and a v1 → v2 upgrade | High |
+| Schema upgrades preserve learner work | `test/migration_test.dart` builds a real v1 database full of drafts, submissions in all five queue states and cached exercises, then opens it at v3 and asserts every row survives | High |
+| A fresh install and an upgraded install reach the same schema | `test/migration_test.dart` compares a canonical table/column/index signature between a straight-to-v3 install and a v1 → v3 upgrade | High |
 | A failed upgrade rolls back rather than half-migrating | `test/migration_test.dart` runs a step that throws after one that succeeded, then asserts the database is untouched and still readable | High |
 | A version bump without a migration is refused at open time | `runMigrations` throws when any version between `from` and `to` has no registered step; asserted directly | High |
 | Retry, backoff, idempotency, no-duplicate-rewards | `test/submission_sync_service_test.dart` | High |
 | The UI works end to end | 10 tests in `test/widget_test.dart`, real SQLite behind a fake runtime | Medium — headless `flutter_test` only |
 | The editor and a real interpreter meet | `test/editor_real_runtime_test.dart` drives the real editor, `EditorController` and `harness_cli.py` against host CPython 3.14.8 | High — but the **desktop** runtime only (see limitation 4) |
 | The app runs end to end on a desktop | `flutter build windows --debug` → `skillbridge_python_lab.exe` launched and rendered the seeded home screen (screenshot taken); the harness executes from the same working directory it uses | High that it *runs*; the UI is driven by hand, not by a script |
-| The whole suite is green | `flutter test` → 134 tests, all passing | High, in this environment only |
+| The whole suite is green | `flutter test` → 155 tests, all passing | High, in this environment only |
+| The lesson flow and inline code chips work | `test/lesson_screen_test.dart` (21 tests): step advance/back, progress bar, single CONTINUE, finish fires exactly once, empty lesson leaves rather than stalling, backtick parsing incl. an unmatched trailing tick, chip semantics label, lesson JSON round-trip | High — headless `flutter_test` only |
+| The lesson hands off to the editor | `test/widget_test.dart` and `test/editor_real_runtime_test.dart` both drive Home → details → lesson → editor before asserting on the editor | High — headless only |
 | The Windows desktop build needs no admin | Plugin links are pre-created as junctions by `tool/link_windows_plugins.ps1`, which exploits Flutter's "skip existing link" branch; Developer Mode is **off** here | High — verified by building on this machine |
 | The Android toolchain is correctly installed | `flutter doctor` reports no issues; SDK 36, build-tools 36.0.0, NDK 28.2.13676358, CMake 3.22.1 all present | High |
 | The Python app packages for Android | `dart run serious_python:main package python_app -p Android` succeeds and stages `build/python-app/` | High |
@@ -223,3 +225,21 @@ stale caveats behind.
     (1.2 MB) links `flutter_windows.dll` (46 MB) and an unstripped
     `python314_d.dll` (~14 MB), and has not been optimised. No release build
     has been produced.
+
+## Lesson content
+
+42. **The lessons are hand-authored seed copy, not LMS content.** All eight
+    lessons live inline as Dart string literals inside
+    `MockLmsClient.sampleExercises()`. There is no authoring tool, no content
+    pipeline, no way for a teacher to edit a sentence without a code change and
+    a rebuild, and no content moderation path for text that will be shown to
+    children. `HttpLmsClient` does not parse a `lesson` field yet either, so
+    the wire contract for lessons is one of the open questions in
+    `docs/LMS_INTEGRATION.md` rather than a settled one.
+43. **Lesson progress is not persisted.** A learner who leaves part-way through
+    a lesson starts again at step 1: the screen holds its position only in
+    widget state. Completion is not recorded anywhere, not shown as a tick or a
+    "reviewed" marker, and not reported to the LMS - so "you have already done
+    this lesson" is a thing the app cannot currently say. Adding it means a new
+    table and therefore a schema migration, which is exactly what
+    `lib/core/storage/schema_migrations.dart` exists to make safe.

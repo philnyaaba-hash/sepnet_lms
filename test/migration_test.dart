@@ -221,14 +221,17 @@ void main() {
         options: OpenDatabaseOptions(version: 1),
       );
 
-      // Pretend someone bumped the version to 3 without writing step 3.
+      // Pretend someone bumped the version past the last registered step.
+      // Derived rather than hardcoded, so adding a migration does not quietly
+      // turn this test into a tautology.
+      final unregistered = kSchemaVersion + 1;
       await expectLater(
-        runMigrations(db, from: 1, to: 3),
+        runMigrations(db, from: 1, to: unregistered),
         throwsA(
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            allOf(contains('No migration registered'), contains('[3]')),
+            allOf(contains('No migration registered'), contains('[$unregistered]')),
           ),
         ),
       );

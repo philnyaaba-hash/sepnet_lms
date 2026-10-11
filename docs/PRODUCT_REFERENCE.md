@@ -8,19 +8,115 @@ is fine; adding it *because a competitor has it* is not.
 
 ## Source and confidence — read this first
 
-Everything below is from the **Google Play store description** of
-*Learn Python with IDE - Codino* (Zynith Studio, package
-`com.codino_official2.codino`), fetched 2026-10-10. It has 1K+ downloads and was
-updated the same day.
+Everything below is from the **Google Play store description** *and the eight
+store screenshots* of *Learn Python with IDE - Codino* (Zynith Studio, package
+`com.codino_official2.codino`), fetched 2026-10-10/11. It has 1K+ downloads.
 
 **I have not used the app.** Nothing here is a claim about how Codino actually
 behaves, how it feels, or whether it delivers on its description. Store copy is
-marketing written by the developer; treat every item as "they say". Where a
-feature is listed twice in their own description with different wording, that is
-noted, because it is a small signal about how carefully the listing was written.
+marketing written by the developer; treat every item as "they say". Screenshots
+are the developer's chosen promotional frames — they show what the developer
+*wants* shown, not the app at its worst.
 
-Screenshots were not part of the fetch, so there are **no interface observations
-here** — only what the text asserts.
+### What the screenshots actually show (verified visually)
+
+The screenshots use a light-blue marketing band around a **dark navy in-app
+UI**. Reading them:
+
+| Screen | What is visibly there |
+| --- | --- |
+| Lesson ("Learn Python Step-by-Step") | `X` close, a **lesson progress bar**, a **star**, and a **lightning bolt with a count (⚡5)**. Body prose with **inline bordered code chips** (`if`, `else` set as boxed tokens inside the sentence), a magnifier callout card, full-width blue **CONTINUE**. |
+| Fill-in-the-blank ("Interactive Bite-Sized Lessons") | Same top chrome. Inline code chips *and* inline syntax-highlighted string literals in the prose. An input line with a caret box and a **`me` avatar chip**. Tappable **answer chips** along the bottom (`if` / `when` / `is`), then flag / refresh / undo icons and a **CHECK** button. |
+| Editor ("Run Code 100% Offline") | **Multi-file tabs** (`main.py`, `Nth_fibonacci.py`, `+`), a left **file rail**, blue **Run** button top-right, line numbers, highlighted current line, normal Android keyboard. |
+| Recaps ("Quick Recaps & Cheat Sheets") | Back arrow, lesson title, a **breadcrumb** (`Python Kickstart → Variables, Numbers & Strings`), headed prose sections with bullet lists and inline code chips, a dark **code block**, and an **"Open in IDE"** button that hands off to the editor. |
+| Notebook ("Free Notebook With 20+ Packages") | Jupyter-style: Files / Download / Run all / Add Code / Add Text, with matplotlib output rendered below the cell. |
+| AI tutor ("24/7 AI Coding Tutor") | Chat, suggestion chips, a model picker labelled **"Lite"**, and a **"Free Certificate Included!"** starburst. |
+
+### What the screenshots do *not* show
+
+**No leaderboard, no streak screen, no currency balance.** The store *text*
+claims daily streaks, a global podium, and Lux/Gold/Energy — but of those only
+**⚡5 energy** and a **⭐** are visible, both as small top-bar counters. The
+streak and leaderboard claims are **unverified by anything I can see**. My
+earlier draft listed streaks as a top adoption; treat it as "they claim it",
+not "they shipped it".
+
+### Correction — device screenshots supersede everything above
+
+On 2026-10-11 the user supplied **19 real device screenshots** of the installed
+app. They are better evidence than the store's promotional frames and they
+**overturn one claim made earlier in this file**: streaks, a leaderboard and a
+gem currency do exist and are shipped. They were listed above as "unverified"
+only because the store's chosen screenshots did not show them.
+
+What the device screenshots establish, in the order they appear:
+
+**Onboarding** — a full, well-built flow, and the clearest thing to learn from.
+Mascot + a speech-bubble prompt + a top progress bar, then radio-card
+questions:
+
+| Screen | Prompt | Options |
+| --- | --- | --- |
+| 1 | (splash) "Learn Python for free with simple, bite-sized lessons!" | START LEARNING / I AM AN EXISTING USER |
+| 2 | "Hey there! Ready to master Python?" | — |
+| 3 | "Why are you learning Python?" | Just exploring · Boost my career · Just for fun · School stuff · Build my own things |
+| 4 | "How much time can you spend a day?" | 5 min/**Easygoing** · 15 min/**Standard** · 30 min/**Committed** · 60 min/**Immersive** |
+| 5 | "Want me to remind you to practice?" | Smart Reminders — "Get a friendly nudge to keep your Python streak alive!" ALLOW / LATER |
+| 6 | (after allowing) "Perfect! Consistency is key." | ALLOW disabled — real feedback, not a dead end |
+| 7 | "Alright, you're all set! Let's dive in." | AI Tutor · Easy Lessons · Python IDE · Quick Recaps |
+| 8 | "Join Codino" / "Complete Profile" | Continue with Google · Sign up with email · Nickname field |
+
+Two things stand out. **Every question is one line and answerable in a tap** —
+no typing until the final nickname. And the time-per-day answers pair a
+duration with a personality label ("15 min per day" → *Standard*), which makes
+a commitment feel like an identity rather than a setting.
+
+**Home** — a Duolingo-style node path: section/unit card, pentagon nodes
+connected by a curve, a "Start" bubble on the active node, 5-tab bottom nav
+(home · IDE · leaderboard · AI · more). **Top bar: 🔥 0 streak, ⚡ 5 energy,
+💎 50 gems.**
+
+**Node card → lesson** — tapping a node raises a card with a **`THEORY` badge**,
+a title, a one-line description, and **`START +10 XP`**. The lesson itself is
+minimal: `X` close, progress bar, ⭐, 🚩, plain prose, `CONTINUE`. Generous
+line height, ~20 px, one idea per screen.
+
+**Leaderboard** — real and populated. Tabs for *7 Days XP* / *All Time Streak*,
+a 1-2-3 podium, avatars, a live countdown chip ("REFRESHES IN 4D 6H 34M"),
+and per-row streaks ("🔥 2d streak") beside real usernames.
+
+**IDE** — `main.py` tab, `+`, a folder icon, filename header with save / undo /
+redo, and a blue **▶ Run**. Single file here; the store screenshot showed
+multi-file tabs.
+
+**AI tutor** — "Hey, let's learn Python", four action cards (Explain loops ·
+Quiz me · Fix my code · Challenge), a model picker set to **"Auto"**, and a
+mic. **Overflow menu** — Profile · Notebook · Certificate · Summary.
+
+### Copy worth stealing, quoted verbatim from the device screenshots
+
+> "Think of Python as a super-fast robot translator. It takes the simple
+> instructions you write in English and translates them into a language that
+> computers can understand instantly."
+
+> "Every single line matters. Python reads top-to-bottom, one at a time — just
+> like you're reading this. It finishes line one before it even glances at
+> line two."
+
+That is the whole style in two paragraphs: **a concrete metaphor, second
+person, present tense, and a comparison to something the learner is already
+doing** ("just like you're reading this"). No jargon, no "note that", no
+definitions. It is markedly better than what we currently ship, and it is the
+single most useful thing to copy.
+
+Note also what the lesson screens do *not* contain: no inline boxed code
+tokens. Those appear only in the fill-in-the-blank exercise (store
+screenshot), where the learner picks `if` / `when` / `is` as tappable chips.
+So the two features are separate: **prose lessons** and **chip-based fill-in
+the blank**.
+
+Everything below the fold of this section is therefore **text-sourced** unless
+it appears in a table above.
 
 ## Why this peer matters
 
@@ -35,13 +131,30 @@ is plausible.
 
 One small quality signal in the listing itself: two of its bullets ("Develop
 good coding habits…" and "Stay motivated with daily streaks…") are each printed
-twice with different follow-on wording. Nothing about the app, but it suggests
-the description was assembled rather than edited.
+twice, verbatim, with different follow-on wording. Confirmed against the full
+description, not just the truncated preview. Nothing about the app, but it
+suggests the description was assembled rather than edited.
+
+### Data safety, as declared (2026-10-11)
+
+| Field | Their declaration |
+| --- | --- |
+| Shares with third parties | App activity, App info and performance, and Device or other IDs |
+| Collects | Personal info, App activity and 2 others |
+| Transit | Encrypted |
+| Deletion | Can be requested |
+| Store category | **Education**, not "Kids" |
+
+No COPPA / GDPR-K style statement appears anywhere on the listing. That is the
+clearest single reason our posture must differ rather than match: our audience
+is explicitly 10–18, so under-13s are in scope by construction, and Ghana's
+Data Protection Act, 2012 (Act 843) applies. See
+`docs/SECURITY_AND_PRIVACY.md`.
 
 Their listing also names its own limits honestly enough for a store page: an
-AI tutor needs a connection, and their data-safety section says they share app
-activity and device identifiers with third parties. Our child-safety posture is a
-higher bar than that, deliberately.
+AI tutor needs a connection, and they share app activity and device identifiers
+with third parties. Our child-safety posture is a higher bar than that,
+deliberately.
 
 ## Language and copy — the part worth studying
 

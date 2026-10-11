@@ -117,21 +117,36 @@ void main() {
     await pumpFrames(tester);
   }
 
-  /// Drives Home -> exercise details -> editor.
+  /// Drives Home -> exercise details -> lesson -> editor.
+  ///
+  /// Exercises now carry a lesson, so the primary button opens teaching first.
+  /// This taps CONTINUE until the editor appears, exercising the real chain.
   Future<void> openEditor(WidgetTester tester) async {
     await tester.tap(find.text('Hello, World!'));
     await pumpFrames(tester);
 
-    final startCoding = find.text('Start coding');
+    final startButton = find.widgetWithText(FilledButton, 'Start with a quick lesson');
     final scrollable = find.byType(Scrollable).first;
-    for (var i = 0; i < 12 && startCoding.evaluate().isEmpty; i++) {
+    for (var i = 0; i < 12 && startButton.evaluate().isEmpty; i++) {
       await tester.drag(scrollable, const Offset(0, -300));
       await pumpFrames(tester, count: 2);
     }
-    expect(startCoding, findsOneWidget, reason: 'never became visible');
+    expect(startButton, findsOneWidget, reason: 'never became visible');
 
-    await tester.tap(startCoding);
+    await tester.tap(startButton);
     await pumpFrames(tester);
+
+    // Walk the lesson steps until the editor's Run button shows.
+    for (var i = 0; i < 12 && find.text('Run').evaluate().isEmpty; i++) {
+      final cont = find.text('CONTINUE');
+      final start = find.text('Start the challenge');
+      final next = cont.evaluate().isNotEmpty ? cont : start;
+      if (next.evaluate().isEmpty) break;
+      await tester.tap(next);
+      await pumpFrames(tester);
+    }
+    expect(find.text('Run'), findsOneWidget,
+        reason: 'the lesson never handed off to the editor');
   }
 
   /// Everything the output console is showing.

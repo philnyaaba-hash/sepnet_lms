@@ -88,6 +88,52 @@ void main() {
         reason: 'never became visible after $maxDrags drags');
   }
 
+  /// Opens the exercise details screen and gets all the way into the editor.
+  ///
+  /// Exercises now carry a lesson, so the primary button reads "Start with a
+  /// quick lesson" and tapping it opens the lesson rather than the editor. This
+  /// taps through the lesson's CONTINUE until the editor appears, which
+  /// exercises the real lesson -> editor chain instead of routing around it.
+  Future<void> openEditor(WidgetTester tester, {required String exerciseTitle}) async {
+    await tester.tap(find.text(exerciseTitle));
+    await pumpFrames(tester);
+
+    // Match the primary button itself, not any text containing "Start": the
+    // details screen also has a "Starter code" heading, which makes a
+    // textContaining finder resolve early and send the tap into a Text.
+    // The predicate is evaluated on every scroll step, so it works while the
+    // list is still lazily building and neither label exists yet.
+    Finder startButton() => find.byWidgetPredicate(
+          (w) =>
+              w is FilledButton &&
+              find
+                  .descendant(
+                    of: find.byWidget(w),
+                    matching: find.textContaining('Start'),
+                  )
+                  .evaluate()
+                  .isNotEmpty,
+          description: 'the details screen primary button',
+        );
+
+    await scrollTo(tester, startButton());
+    await tester.tap(startButton());
+    await pumpFrames(tester);
+
+    // Cap the taps so a broken lesson fails with a clear message rather than
+    // looping until the test times out.
+    for (var i = 0; i < 12 && find.text('Run').evaluate().isEmpty; i++) {
+      final cont = find.text('CONTINUE');
+      final start = find.text('Start the challenge');
+      final button = cont.evaluate().isNotEmpty ? cont : start;
+      if (button.evaluate().isEmpty) break;
+      await tester.tap(button);
+      await pumpFrames(tester);
+    }
+    expect(find.text('Run'), findsOneWidget,
+        reason: 'the lesson never handed off to the editor');
+  }
+
   Future<void> pumpApp(WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
@@ -220,11 +266,7 @@ void main() {
         (tester) async {
       await pumpApp(tester);
 
-      await tester.tap(find.text('Hello, World!'));
-      await pumpFrames(tester);
-      await scrollTo(tester, find.text('Start coding'));
-      await tester.tap(find.text('Start coding'));
-      await pumpFrames(tester);
+      await openEditor(tester, exerciseTitle: 'Hello, World!');
 
       expect(find.text('Run'), findsOneWidget);
       expect(find.text('Tap Run to see the output here.'), findsOneWidget);
@@ -249,11 +291,7 @@ void main() {
         (tester) async {
       await pumpApp(tester);
 
-      await tester.tap(find.text('Hello, World!'));
-      await pumpFrames(tester);
-      await scrollTo(tester, find.text('Start coding'));
-      await tester.tap(find.text('Start coding'));
-      await pumpFrames(tester);
+      await openEditor(tester, exerciseTitle: 'Hello, World!');
 
       final pendingBefore = await real(
           tester, () => deps.submissions.pendingCount(deps.learnerRef));
@@ -279,11 +317,7 @@ void main() {
       await rebuildDeps(tester, online: false);
       await pumpApp(tester);
 
-      await tester.tap(find.text('Hello, World!'));
-      await pumpFrames(tester);
-      await scrollTo(tester, find.text('Start coding'));
-      await tester.tap(find.text('Start coding'));
-      await pumpFrames(tester);
+      await openEditor(tester, exerciseTitle: 'Hello, World!');
 
       await tester.tap(find.text('Submit'));
       await pumpFrames(tester);
@@ -306,11 +340,7 @@ void main() {
         (tester) async {
       await pumpApp(tester);
 
-      await tester.tap(find.text('Hello, World!'));
-      await pumpFrames(tester);
-      await scrollTo(tester, find.text('Start coding'));
-      await tester.tap(find.text('Start coding'));
-      await pumpFrames(tester);
+      await openEditor(tester, exerciseTitle: 'Hello, World!');
 
       await tester.tap(find.byTooltip('Save draft'));
       await pumpFrames(tester);
