@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepnet - Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --gray-900: #0f172a;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-500: #64748b;
+            --gray-400: #94a3b8;
+            --gray-300: #cbd5e1;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --white: #ffffff;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: url('https://res.cloudinary.com/dwsl2ktt2/image/upload/v1790260777/33a26a57-85c4-49a7-bb1f-a0c9664e51cc_gyodd3.jpg') center center / cover no-repeat fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 0;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-section h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-section p {
+            font-size: 15px;
+            color: var(--gray-600);
+            font-weight: 400;
+        }
+
+        .pin-input-section {
+            margin-bottom: 32px;
+        }
+
+        .pin-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .pin-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .pin-digit {
+            width: 64px;
+            height: 72px;
+            border: 2px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--gray-900);
+            background: var(--white);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        .pin-digit:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pin-digit.filled {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+
+        .pin-digit.error {
+            border-color: var(--danger);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .error-message {
+            text-align: center;
+            color: var(--danger);
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .footer-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--gray-100);
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--white);
+            transform: rotate(20deg);
+        }
+
+        .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        body.dark-mode {
+            background: url('https://res.cloudinary.com/dwsl2ktt2/image/upload/v1790260777/33a26a57-85c4-49a7-bb1f-a0c9664e51cc_gyodd3.jpg') center center / cover no-repeat fixed;
+        }
+
+        body.dark-mode::before {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        body.light-mode {
+            background: url('https://res.cloudinary.com/dwsl2ktt2/image/upload/v1790260777/33a26a57-85c4-49a7-bb1f-a0c9664e51cc_gyodd3.jpg') center center / cover no-repeat fixed;
+        }
+
+        body.light-mode::before {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .login-container {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        body.light-mode .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        body.dark-mode .logo-section h1,
+        body.dark-mode .pin-digit {
+            color: #f1f5f9;
+        }
+
+        body.light-mode .logo-section h1,
+        body.light-mode .pin-digit {
+            color: #0f172a;
+        }
+
+        body.dark-mode .logo-section p,
+        body.dark-mode .pin-label,
+        body.dark-mode .footer-text {
+            color: #94a3b8;
+        }
+
+        body.light-mode .logo-section p,
+        body.light-mode .pin-label,
+        body.light-mode .footer-text {
+            color: #475569;
+        }
+
+        body.dark-mode .pin-digit {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        body.light-mode .pin-digit {
+            background: #ffffff;
+            border-color: #cbd5e1;
+        }
+
+        body.dark-mode .theme-toggle {
+            background: #334155;
+            border-color: #475569;
+            color: #cbd5e1;
+        }
+
+        body.light-mode .theme-toggle {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #475569;
+        }
+
+        body.dark-mode .theme-toggle .sun-icon {
+            display: none;
+        }
+
+        body.dark-mode .theme-toggle .moon-icon {
+            display: block;
+        }
+
+        body.light-mode .theme-toggle .sun-icon {
+            display: block;
+        }
+
+        body.light-mode .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 32px 24px;
+            }
+
+            .pin-digit {
+                width: 56px;
+                height: 64px;
+                font-size: 24px;
+            }
+
+            .logo {
+                width: 64px;
+                height: 64px;
+            }
+
+            .logo-section h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M15.07 4.93l-1.41 1.41M6.34 13.66l-1.41 1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M17.5 10.5a7.5 7.5 0 11-8-8 6 6 0 008 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo">
+                <img src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1790260220/sepnetghana_jjq8vj.jpg" alt="Sepnet">
+            </div>
+            <h1>Welcome to Sepnet</h1>
+            <p>Enter your PIN to continue learning</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="pin-input-section">
+                <label class="pin-label">Enter 4-digit PIN</label>
+                <div class="pin-container">
+                    <input type="password" class="pin-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code" required>
+                    <input type="password" class="pin-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="password" class="pin-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="password" class="pin-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                </div>
+                <div class="error-message" id="errorMessage">Invalid PIN. Please try again.</div>
+            </div>
+
+            <button type="submit" class="login-button" id="loginButton">
+                <span id="buttonText">Unlock Access</span>
+            </button>
+        </form>
+
+        <div class="footer-text">
+            Need help? <a href="https://wa.me/233541988383" target="_blank">Contact Support</a>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_PIN = '2115';
+        const pinInputs = document.querySelectorAll('.pin-digit');
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+        const buttonText = document.getElementById('buttonText');
+        const errorMessage = document.getElementById('errorMessage');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            if (isDark) {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+                document.body.classList.add('dark-mode');
+            }
+            
+            const newTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('loginTheme', newTheme);
+        });
+
+        // Load saved theme (default to dark)
+        const savedTheme = localStorage.getItem('loginTheme');
+        if (savedTheme !== 'light') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Auto-focus first input
+        pinInputs[0].focus();
+
+        // Handle PIN input
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Only allow numbers
+                if (!/^\d$/.test(value) && value !== '') {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Mark as filled
+                if (value) {
+                    input.classList.add('filled');
+                    input.classList.remove('error');
+                } else {
+                    input.classList.remove('filled');
+                }
+
+                // Move to next input
+                if (value && index < pinInputs.length - 1) {
+                    pinInputs[index + 1].focus();
+                }
+
+                // Auto-submit when all filled
+                if (index === pinInputs.length - 1 && value) {
+                    setTimeout(() => validatePIN(), 300);
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                // Backspace - move to previous
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    pinInputs[index - 1].focus();
+                    pinInputs[index - 1].value = '';
+                    pinInputs[index - 1].classList.remove('filled');
+                }
+
+                // Arrow keys
+                if (e.key === 'ArrowLeft' && index > 0) {
+                    pinInputs[index - 1].focus();
+                }
+                if (e.key === 'ArrowRight' && index < pinInputs.length - 1) {
+                    pinInputs[index + 1].focus();
+                }
+            });
+
+            // Handle paste
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').trim();
+                
+                if (/^\d{4}$/.test(pastedData)) {
+                    pinInputs.forEach((inp, i) => {
+                        inp.value = pastedData[i];
+                        inp.classList.add('filled');
+                    });
+                    pinInputs[3].focus();
+                    setTimeout(() => validatePIN(), 300);
+                }
+            });
+        });
+
+        // Form submit
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            validatePIN();
+        });
+
+        // Validate PIN
+        function validatePIN() {
+            const enteredPIN = Array.from(pinInputs).map(input => input.value).join('');
+
+            if (enteredPIN.length !== 4) {
+                showError();
+                return;
+            }
+
+            // Show loading
+            loginButton.disabled = true;
+            buttonText.innerHTML = '<span class="loading"></span>';
+
+            setTimeout(() => {
+                if (enteredPIN === CORRECT_PIN) {
+                    // Success
+                    sessionStorage.setItem('sepnetAuthenticated', 'true');
+                    window.location.href = 'index.html';
+                } else {
+                    // Error
+                    showError();
+                    loginButton.disabled = false;
+                    buttonText.textContent = 'Unlock Access';
+                }
+            }, 800);
+        }
+
+        // Show error
+        function showError() {
+            pinInputs.forEach(input => {
+                input.classList.add('error');
+                input.classList.remove('filled');
+            });
+            
+            errorMessage.classList.add('show');
+
+            setTimeout(() => {
+                pinInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('error');
+                });
+                pinInputs[0].focus();
+            }, 500);
+
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // Check if already authenticated
+        if (sessionStorage.getItem('sepnetAuthenticated') === 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -178,7 +178,7 @@ class _CodeChipState extends State<_CodeChip>
     // Inverted against the surface. Both are theme-derived so a future theme
     // change keeps the contrast relationship.
     final chipBackground =
-        isDark ? const Color(0xFFE8EDF4) : AppTheme.codeSurface;
+        isDark ? const Color(0xFFE8EDF4) : SkillBridgeColors.codeSurface;
     final chipForeground =
         isDark ? const Color(0xFF111A26) : const Color(0xFFF2F5F9);
     final chipBorder =
@@ -242,7 +242,7 @@ class CodeBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final background = isDark ? AppTheme.codeSurface : const Color(0xFFEDF1F6);
+    final background = isDark ? SkillBridgeColors.codeSurface : const Color(0xFFEDF1F6);
     final foreground = isDark ? const Color(0xFFE6EAF0) : const Color(0xFF14202E);
     final border =
         isDark ? const Color(0xFF243447) : const Color(0xFFCBD4E0);

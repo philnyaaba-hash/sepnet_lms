@@ -117,6 +117,13 @@ class EditorController extends ChangeNotifier {
     if (_isRunning) {
       return _result ?? ExecutionResult.cancelled();
     }
+    if (_code.trim().isEmpty) {
+      _result = ExecutionResult.runtimeFailure(
+        'There is no code to run yet. Write a small Python program first.',
+      );
+      notifyListeners();
+      return _result!;
+    }
     _isRunning = true;
     _result = null;
     notifyListeners();
@@ -140,9 +147,17 @@ class EditorController extends ChangeNotifier {
   }
 
   Future<void> stop() async {
-    await _deps.runtime.cancel();
-    _isRunning = false;
-    notifyListeners();
+    if (!_isRunning) return;
+    try {
+      await _deps.runtime.cancel();
+    } catch (_) {
+      // Stopping is best-effort. The UI should never crash because a runtime
+      // has already exited while the learner pressed Stop.
+    } finally {
+      _isRunning = false;
+      _result = ExecutionResult.cancelled();
+      notifyListeners();
+    }
   }
 
   /// Creates a durable submission and attempts to sync it immediately.
@@ -150,6 +165,13 @@ class EditorController extends ChangeNotifier {
   /// The submission is always persisted **before** any network call, so an
   /// offline tap is never lost. Rewards are decided by the server response.
   Future<SubmitOutcome> submit() async {
+    if (_isSubmitting) return _lastSubmitOutcome ?? SubmitOutcome.failed;
+    if (_code.trim().isEmpty) {
+      _lastSubmitOutcome = SubmitOutcome.failed;
+      _submitMessage = 'Write some code before you submit it.';
+      notifyListeners();
+      return _lastSubmitOutcome!;
+    }
     _isSubmitting = true;
     _lastSubmitOutcome = null;
     _submitMessage = null;

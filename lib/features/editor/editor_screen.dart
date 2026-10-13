@@ -6,6 +6,7 @@ import 'package:skillbridge_python_lab/features/home/connectivity_controller.dar
 import 'package:skillbridge_python_lab/features/settings/settings_controller.dart';
 import 'package:skillbridge_python_lab/features/editor/editor_controller.dart';
 import 'package:skillbridge_python_lab/features/exercises/exercise.dart';
+
 import 'widgets/code_editing_controller.dart';
 import 'widgets/code_editor.dart';
 import 'widgets/output_console.dart';
@@ -29,6 +30,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
   bool _initialising = true;
   bool _showInstructions = true;
+  String? _initialiseError;
 
   @override
   void initState() {
@@ -43,12 +45,29 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _initialise() async {
-    await _deps.runtime.prepare().catchError((_) {});
-    await _editor.load();
-    _codeController.text = _editor.code;
-    _codeController.selection = TextSelection.collapsed(offset: _editor.code.length);
-    _initialising = false;
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        _initialising = true;
+        _initialiseError = null;
+      });
+    }
+    try {
+      await _deps.runtime.prepare();
+      await _editor.load();
+      _codeController.text = _editor.code;
+      _codeController.selection = TextSelection.collapsed(
+        offset: _editor.code.length,
+      );
+    } catch (_) {
+      _codeController.text = widget.exercise.starterCode;
+      _codeController.selection = TextSelection.collapsed(
+        offset: _codeController.text.length,
+      );
+      _initialiseError = 'The Python runner is taking a break. You can still edit your code and try again.';
+    } finally {
+      _initialising = false;
+      if (mounted) setState(() {});
+    }
   }
 
   void _onCodeChanged() {
@@ -71,13 +90,25 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _run() async {
+    if (_initialising || _editor.isRunning || _editor.isSubmitting) return;
     FocusScope.of(context).unfocus();
     setState(() => _showInstructions = false);
     if (widget.exercise.id == 'ex-input' && _editor.stdinText.isEmpty) {
       await _promptForInput();
     }
     if (!mounted) return;
-    await _editor.run();
+    try {
+      await _editor.run();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'The program could not start. Check your code and try again.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _promptForInput() async {
@@ -100,8 +131,12 @@ class _EditorScreenState extends State<EditorScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size(88, 48)),
             onPressed: () => Navigator.pop(ctx, controller.text),
             child: const Text('Use'),
           ),
@@ -114,7 +149,20 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _submit() async {
-    await _editor.submit();
+    if (_initialising || _editor.isRunning || _editor.isSubmitting) return;
+    try {
+      await _editor.submit();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your work is safe. We could not submit it yet — please try again.',
+          ),
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     context.read<ConnectivityController>().refreshPendingCount();
     _showSubmitFeedback();
@@ -141,18 +189,35 @@ class _EditorScreenState extends State<EditorScreen> {
         background = const Color(0xFF37474F);
         icon = Icons.error_outline;
     }
-    messenger.showSnackBar(SnackBar(
-      content: Row(children: [
-        Icon(icon, color: Colors.white),
-        const SizedBox(width: 10),
-        Expanded(child: Text(message)),
-      ]),
-      backgroundColor: background,
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: background,
+      ),
+    );
   }
 
   Future<void> _saveDraft() async {
-    await _editor.saveDraft();
+    if (_initialising) return;
+    try {
+      await _editor.saveDraft();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'We could not save the draft, but your code is still on screen.',
+          ),
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Draft saved on this device.')),
@@ -160,21 +225,44 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _reset() async {
+    if (_initialising || _editor.isRunning || _editor.isSubmitting) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Reset code?'),
-        content: const Text('This replaces your code with the starter code. Your saved draft will be overwritten.'),
+        content: const Text(
+          'This replaces your code with the starter code. Your saved draft will be overwritten.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Reset')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size(88, 48)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reset'),
+          ),
         ],
       ),
     );
     if (confirmed != true) return;
-    await _editor.resetToStarter();
-    _codeController.text = _editor.code;
-    _codeController.selection = TextSelection.collapsed(offset: _editor.code.length);
+    try {
+      await _editor.resetToStarter();
+      _codeController.text = _editor.code;
+      _codeController.selection = TextSelection.collapsed(
+        offset: _editor.code.length,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'The starter code could not be restored. Your current code is still safe.',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -189,25 +277,33 @@ class _EditorScreenState extends State<EditorScreen> {
           children: [
             Text(widget.exercise.title, style: const TextStyle(fontSize: 17)),
             if (!online)
-              const Text('Offline — your work is saved locally',
-                  style: TextStyle(fontSize: 11, color: Color(0xFFFFE0A3))),
+              const Text(
+                'Offline — your work is saved locally',
+                style: TextStyle(fontSize: 11, color: Color(0xFFFFE0A3)),
+              ),
           ],
         ),
         actions: [
           IconButton(
             tooltip: 'Exercise details',
             icon: const Icon(Icons.info_outline),
-            onPressed: () => setState(() => _showInstructions = !_showInstructions),
+            onPressed: () =>
+                setState(() => _showInstructions = !_showInstructions),
           ),
           IconButton(
             tooltip: 'Save draft',
-            icon: Icon(_editor.hasUnsavedChanges ? Icons.save : Icons.save_outlined),
-            onPressed: _saveDraft,
+            icon: Icon(
+              _editor.hasUnsavedChanges ? Icons.save : Icons.save_outlined,
+            ),
+            onPressed: _initialising ? null : _saveDraft,
           ),
           IconButton(
             tooltip: 'Reset code',
             icon: const Icon(Icons.restart_alt),
-            onPressed: _reset,
+            onPressed:
+                _initialising || _editor.isRunning || _editor.isSubmitting
+                ? null
+                : _reset,
           ),
         ],
       ),
@@ -215,6 +311,8 @@ class _EditorScreenState extends State<EditorScreen> {
         child: Column(
           children: [
             if (_showInstructions) _InstructionsCard(exercise: widget.exercise),
+            if (_initialiseError != null)
+              _RuntimeWarning(message: _initialiseError!, onRetry: _initialise),
             Expanded(
               flex: 3,
               child: _initialising
@@ -222,13 +320,20 @@ class _EditorScreenState extends State<EditorScreen> {
                   : CodeEditor(
                       controller: _codeController,
                       focusNode: _focusNode,
-                      fontSize: context.watch<SettingsController>().editorFontSize,
-                      indentUnit: context.watch<SettingsController>().indentUnit,
+                      fontSize: context
+                          .watch<SettingsController>()
+                          .editorFontSize,
+                      indentUnit: context
+                          .watch<SettingsController>()
+                          .indentUnit,
                     ),
             ),
             SizedBox(
               height: 160,
-              child: OutputConsole(result: _editor.result, isRunning: _editor.isRunning),
+              child: OutputConsole(
+                result: _editor.result,
+                isRunning: _editor.isRunning,
+              ),
             ),
             ShortcutBar(controller: _codeController, focusNode: _focusNode),
             _ActionBar(
@@ -242,6 +347,40 @@ class _EditorScreenState extends State<EditorScreen> {
         ),
       ),
       backgroundColor: theme.colorScheme.surface,
+    );
+  }
+}
+
+class _RuntimeWarning extends StatelessWidget {
+  const _RuntimeWarning({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A2B16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF8A6728)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Color(0xFFFFD180)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Color(0xFFFFE6B0)),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: const Text('TRY AGAIN')),
+        ],
+      ),
     );
   }
 }
@@ -273,7 +412,10 @@ class _InstructionsCard extends StatelessWidget {
                     const Icon(Icons.check_box_outlined, size: 16),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Text(requirement, style: theme.textTheme.bodySmall),
+                      child: Text(
+                        requirement,
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                   ],
                 ),
@@ -312,7 +454,9 @@ class _ActionBar extends StatelessWidget {
               child: isRunning
                   ? FilledButton.icon(
                       onPressed: onStop,
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB71C1C)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFB71C1C),
+                      ),
                       icon: const Icon(Icons.stop),
                       label: const Text('Stop'),
                     )
@@ -327,7 +471,11 @@ class _ActionBar extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: isSubmitting ? null : onSubmit,
                 icon: isSubmitting
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.cloud_upload_outlined),
                 label: const Text('Submit'),
               ),

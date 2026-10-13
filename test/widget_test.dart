@@ -162,13 +162,13 @@ void main() {
         (tester) async {
       await pumpApp(tester);
 
-      expect(find.text('SkillBridge\nPython Lab'), findsOneWidget);
-      expect(find.text('Exercises'), findsOneWidget);
+      expect(find.text('Python Lab'), findsOneWidget);
+      expect(find.text('Practice challenges'), findsOneWidget);
       expect(find.text('Hello, World!'), findsOneWidget);
       // `SliverList` is lazy, so only the count can prove every exercise
       // arrived, not a lookup of a tile that may not be built yet.
       expect(find.text('8 available'), findsOneWidget);
-      expect(find.text('Online'), findsOneWidget);
+      expect(find.text('Connected'), findsOneWidget);
       expect(find.text('Your progress'), findsOneWidget);
 
       await unmount(tester);
@@ -179,9 +179,9 @@ void main() {
       await rebuildDeps(tester, online: false);
       await pumpApp(tester);
 
-      expect(find.text('Offline — your work is saved on this device'),
+      expect(find.text('Offline mode · your work is saved on this device'),
           findsOneWidget);
-      expect(find.text('Online'), findsNothing);
+      expect(find.text('Connected'), findsNothing);
 
       await unmount(tester);
     });

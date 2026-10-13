@@ -57,51 +57,54 @@ class ExecutionResult {
   factory ExecutionResult.fromJson(Map<String, dynamic> json) {
     final rawException = json['exception'];
     return ExecutionResult(
-      status: statusFromName(json['status'] as String?),
-      stdout: (json['stdout'] as String?) ?? '',
-      stderr: (json['stderr'] as String?) ?? '',
+      status: statusFromName(json['status']?.toString()),
+      stdout: json['stdout']?.toString() ?? '',
+      stderr: json['stderr']?.toString() ?? '',
       exception: rawException is Map<String, dynamic>
           ? ExecutionException.fromJson(rawException)
           : null,
-      durationMs: (json['durationMs'] as num?)?.toInt() ?? 0,
-      stdoutTruncated: json['stdoutTruncated'] as bool? ?? false,
-      stderrTruncated: json['stderrTruncated'] as bool? ?? false,
-      pythonVersion: (json['pythonVersion'] as String?) ?? '',
+      durationMs: json['durationMs'] is num
+          ? (json['durationMs'] as num).toInt()
+          : int.tryParse(json['durationMs']?.toString() ?? '') ?? 0,
+      stdoutTruncated: json['stdoutTruncated'] == true,
+      stderrTruncated: json['stderrTruncated'] == true,
+      pythonVersion: json['pythonVersion']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'status': status.name,
-        'stdout': stdout,
-        'stderr': stderr,
-        'exception': exception?.toJson(),
-        'durationMs': durationMs,
-        'stdoutTruncated': stdoutTruncated,
-        'stderrTruncated': stderrTruncated,
-        'pythonVersion': pythonVersion,
-      };
+    'status': status.name,
+    'stdout': stdout,
+    'stderr': stderr,
+    'exception': exception?.toJson(),
+    'durationMs': durationMs,
+    'stdoutTruncated': stdoutTruncated,
+    'stderrTruncated': stderrTruncated,
+    'pythonVersion': pythonVersion,
+  };
 
   /// A result representing infrastructure failure (runtime could not start).
   factory ExecutionResult.runtimeFailure(String message) => ExecutionResult(
-        status: ExecutionStatus.error,
-        stderr: message,
-        exception: ExecutionException(type: 'RuntimeError', message: message),
-      );
+    status: ExecutionStatus.error,
+    stderr: message,
+    exception: ExecutionException(type: 'RuntimeError', message: message),
+  );
 
   factory ExecutionResult.timedOut(Duration timeout) => ExecutionResult(
-        status: ExecutionStatus.timeout,
-        stderr: 'Your program ran for more than ${timeout.inSeconds} seconds and was stopped. '
-            'Check for an infinite loop or a missing condition.',
-        exception: const ExecutionException(
-          type: 'TimeoutError',
-          message: 'Execution timed out',
-        ),
-      );
+    status: ExecutionStatus.timeout,
+    stderr:
+        'Your program ran for more than ${timeout.inSeconds} seconds and was stopped. '
+        'Check for an infinite loop or a missing condition.',
+    exception: const ExecutionException(
+      type: 'TimeoutError',
+      message: 'Execution timed out',
+    ),
+  );
 
   factory ExecutionResult.cancelled() => const ExecutionResult(
-        status: ExecutionStatus.cancelled,
-        stderr: 'Execution stopped.',
-      );
+    status: ExecutionStatus.cancelled,
+    stderr: 'Execution stopped.',
+  );
 }
 
 enum ExecutionStatus { success, error, timeout, cancelled }
@@ -125,19 +128,21 @@ class ExecutionException {
   factory ExecutionException.fromJson(Map<String, dynamic> json) {
     final rawLine = json['line'];
     return ExecutionException(
-      type: (json['type'] as String?) ?? 'Error',
-      message: (json['message'] as String?) ?? '',
-      traceback: (json['traceback'] as String?) ?? '',
-      line: rawLine is String ? int.tryParse(rawLine) : rawLine as int?,
+      type: json['type']?.toString() ?? 'Error',
+      message: json['message']?.toString() ?? '',
+      traceback: json['traceback']?.toString() ?? '',
+      line: rawLine is num
+          ? rawLine.toInt()
+          : int.tryParse(rawLine?.toString() ?? ''),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'type': type,
-        'message': message,
-        'traceback': traceback,
-        if (line != null) 'line': line.toString(),
-      };
+    'type': type,
+    'message': message,
+    'traceback': traceback,
+    if (line != null) 'line': line.toString(),
+  };
 
   /// Beginner-friendly one-liner used in the results screen.
   String get friendlyLabel {

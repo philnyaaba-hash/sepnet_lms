@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:skillbridge_python_lab/features/exercises/exercise.dart';
 import 'package:skillbridge_python_lab/features/lessons/inline_code_text.dart';
 import 'package:skillbridge_python_lab/features/lessons/lesson.dart';
+import 'package:skillbridge_python_lab/shared/widgets/code_buddy.dart';
 
 /// Screen: the teaching beat that precedes an exercise.
 ///
@@ -19,11 +20,7 @@ import 'package:skillbridge_python_lab/features/lessons/lesson.dart';
 /// 4"), every step transition is announced, and the CONTINUE button is the
 /// only focusable action, so keyboard and switch access stay simple.
 class LessonScreen extends StatefulWidget {
-  const LessonScreen({
-    super.key,
-    required this.exercise,
-    this.onFinished,
-  });
+  const LessonScreen({super.key, required this.exercise, this.onFinished});
 
   final Exercise exercise;
 
@@ -38,6 +35,7 @@ class LessonScreen extends StatefulWidget {
 class _LessonScreenState extends State<LessonScreen> {
   int _index = 0;
   bool _leaving = false;
+  bool _emptyLessonPopScheduled = false;
 
   /// Direction of the most recent step change: +1 forward, -1 backward. Used
   /// by the transition so steps rise from below when advancing and from above
@@ -52,13 +50,20 @@ class _LessonScreenState extends State<LessonScreen> {
   void _advance() {
     if (_leaving) return;
     if (_isLast) {
-      setState(() => _leaving = true);
-      final onFinished = widget.onFinished;
-      if (onFinished != null) {
-        onFinished();
-      } else {
-        Navigator.of(context).maybePop();
-      }
+      // Block double taps without rebuilding, then change routes only after
+      // the current frame has finished. Rebuilding and replacing this route in
+      // the same frame is a known trigger for the framework assertion
+      // `_elements.contains(element)`.
+      _leaving = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final onFinished = widget.onFinished;
+        if (onFinished != null) {
+          onFinished();
+        } else {
+          Navigator.of(context).maybePop();
+        }
+      });
       return;
     }
     setState(() {
@@ -70,7 +75,10 @@ class _LessonScreenState extends State<LessonScreen> {
   void _back() {
     if (_leaving) return;
     if (_index == 0) {
-      Navigator.of(context).maybePop();
+      _leaving = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).maybePop();
+      });
       return;
     }
     setState(() {
@@ -87,9 +95,15 @@ class _LessonScreenState extends State<LessonScreen> {
     // Defensive: an exercise with no lesson should never route here, but a
     // blank screen is a worse failure than leaving immediately.
     if (steps.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.of(context).maybePop();
-      });
+      if (!_emptyLessonPopScheduled) {
+        _emptyLessonPopScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_leaving) {
+            _leaving = true;
+            Navigator.of(context).maybePop();
+          }
+        });
+      }
       return const Scaffold(body: SizedBox.shrink());
     }
 
@@ -132,7 +146,11 @@ class _LessonScreenState extends State<LessonScreen> {
                 },
                 child: KeyedSubtree(
                   key: ValueKey(_index),
-                  child: _LessonStepView(step: steps[_index]),
+                  child: _LessonStepView(
+                    step: steps[_index],
+                    index: _index,
+                    isLast: _isLast,
+                  ),
                 ),
               ),
             ),
@@ -209,7 +227,11 @@ class _LessonHeader extends StatelessWidget {
           // Deliberately quiet — it must not compete with CONTINUE.
           Tooltip(
             message: 'Earn 10 XP when your code is accepted',
-            child: Icon(Icons.star_rounded, color: theme.colorScheme.primary, size: 26),
+            child: Icon(
+              Icons.star_rounded,
+              color: theme.colorScheme.primary,
+              size: 26,
+            ),
           ),
         ],
       ),
@@ -218,9 +240,33 @@ class _LessonHeader extends StatelessWidget {
 }
 
 class _LessonStepView extends StatelessWidget {
-  const _LessonStepView({required this.step});
+  const _LessonStepView({
+    required this.step,
+    required this.index,
+    required this.isLast,
+  });
 
   final LessonStep step;
+  final int index;
+  final bool isLast;
+
+  /// Short coach lines for Bit's speech bubble. They must never contain the
+  /// word "Step" followed by a number, which the lesson tests search for.
+  static const _coach = [
+    "Hi, I'm Bit! Let's learn this together.",
+    'Take your time. Read it slowly.',
+    'Nice! You are getting this.',
+    'Good thinking. Keep going!',
+    'Great focus. You are doing well.',
+  ];
+
+  static String _line(int index, bool isLast) =>
+      isLast ? "Last bit! Then it's your turn to code." : _coach[index % _coach.length];
+
+  static BuddyMood _mood(int index, bool isLast) {
+    if (isLast) return BuddyMood.celebrate;
+    return index.isOdd ? BuddyMood.thinking : BuddyMood.happy;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,6 +279,11 @@ class _LessonStepView extends StatelessWidget {
           // Prose. The bodyLarge style already scales with the system font
           // size, and the 1.5 line height is what keeps a paragraph readable
           // on a cheap screen at arm's length.
+          BuddySays(
+            message: _line(index, isLast),
+            mood: _mood(index, isLast),
+          ),
+          const SizedBox(height: 20),
           InlineCodeText(
             step.prose,
             style: theme.textTheme.bodyLarge?.copyWith(
@@ -240,8 +291,7 @@ class _LessonStepView extends StatelessWidget {
               height: 1.55,
             ),
           ),
-          if (step.exampleCode != null)
-            CodeBlock(step.exampleCode!),
+          if (step.exampleCode != null) CodeBlock(step.exampleCode!),
           const SizedBox(height: 24),
         ],
       ),

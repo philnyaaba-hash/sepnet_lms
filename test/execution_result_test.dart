@@ -5,10 +5,18 @@ import 'package:skillbridge_python_lab/features/python_runtime/execution_result.
 void main() {
   group('status parsing', () {
     test('maps every known status name', () {
-      expect(ExecutionResult.statusFromName('success'), ExecutionStatus.success);
-      expect(ExecutionResult.statusFromName('timeout'), ExecutionStatus.timeout);
       expect(
-          ExecutionResult.statusFromName('cancelled'), ExecutionStatus.cancelled);
+        ExecutionResult.statusFromName('success'),
+        ExecutionStatus.success,
+      );
+      expect(
+        ExecutionResult.statusFromName('timeout'),
+        ExecutionStatus.timeout,
+      );
+      expect(
+        ExecutionResult.statusFromName('cancelled'),
+        ExecutionStatus.cancelled,
+      );
       expect(ExecutionResult.statusFromName('error'), ExecutionStatus.error);
     });
 
@@ -50,7 +58,10 @@ void main() {
       expect(restored.exception!.type, 'IndexError');
       expect(restored.exception!.message, 'list index out of range');
       expect(restored.exception!.line, 3);
-      expect(restored.exception!.traceback, 'Traceback (most recent call last)');
+      expect(
+        restored.exception!.traceback,
+        'Traceback (most recent call last)',
+      );
     });
 
     test('tolerates a missing or partial payload', () {
@@ -64,7 +75,11 @@ void main() {
 
       final partial = ExecutionResult.fromJson(const {
         'status': 'success',
-        'exception': {'type': 'ValueError', 'message': 'bad value', 'line': '7'},
+        'exception': {
+          'type': 'ValueError',
+          'message': 'bad value',
+          'line': '7',
+        },
       });
       expect(partial.status, ExecutionStatus.success);
       expect(partial.exception!.line, 7);
@@ -79,6 +94,31 @@ void main() {
       expect(result.exception, isNull);
       expect(result.hasException, isFalse);
     });
+
+    test('does not throw when runtime fields have unexpected types', () {
+      final result = ExecutionResult.fromJson(const {
+        'status': 42,
+        'stdout': 123,
+        'stderr': false,
+        'durationMs': 'slow',
+        'stdoutTruncated': 'yes',
+        'stderrTruncated': 1,
+        'exception': {
+          'type': 7,
+          'message': null,
+          'traceback': 99,
+          'line': <String>['not', 'a', 'line'],
+        },
+      });
+
+      expect(result.status, ExecutionStatus.error);
+      expect(result.stdout, '123');
+      expect(result.stderr, 'false');
+      expect(result.durationMs, 0);
+      expect(result.stdoutTruncated, isFalse);
+      expect(result.exception!.type, '7');
+      expect(result.exception!.line, isNull);
+    });
   });
 
   group('factories', () {
@@ -89,8 +129,10 @@ void main() {
       expect(result.stderr, contains('10 seconds'));
       expect(result.stderr, contains('infinite loop'));
       expect(result.exception!.type, 'TimeoutError');
-      expect(result.exception!.friendlyLabel,
-          'Your program took too long and was stopped.');
+      expect(
+        result.exception!.friendlyLabel,
+        'Your program took too long and was stopped.',
+      );
     });
 
     test('cancelled produces a cancelled result', () {
@@ -139,7 +181,8 @@ void main() {
         'IndexError': 'You asked for an item that is outside the list.',
         'KeyError': 'The dictionary does not contain that key.',
         'ZeroDivisionError': 'You cannot divide by zero.',
-        'IndentationError': 'The indentation is not correct. Line up blocks of code.',
+        'IndentationError':
+            'The indentation is not correct. Line up blocks of code.',
         'EOFError': 'Your program asked for more input than you provided.',
         'ValueError': 'A value had the right type but the wrong content.',
         'TimeoutError': 'Your program took too long and was stopped.',
@@ -151,14 +194,19 @@ void main() {
           message: 'raw',
           line: entry.key == 'SyntaxError' ? 4 : null,
         );
-        expect(exception.friendlyLabel, entry.value,
-            reason: 'label for ${entry.key}');
+        expect(
+          exception.friendlyLabel,
+          entry.value,
+          reason: 'label for ${entry.key}',
+        );
       }
     });
 
     test('falls back to the message for unknown types', () {
       const withMessage = ExecutionException(
-          type: 'ArithmeticError', message: 'something specific');
+        type: 'ArithmeticError',
+        message: 'something specific',
+      );
       expect(withMessage.friendlyLabel, 'something specific');
 
       const withoutMessage = ExecutionException(type: 'X', message: '');

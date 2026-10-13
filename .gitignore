@@ -1,15 +1,17 @@
-# Flutter/Dart
+# Flutter / Dart
 .dart_tool/
-.packages
-build/
 .flutter-plugins
 .flutter-plugins-dependencies
-*.iml
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
 
 # IDE
 .idea/
 .vscode/
-*.swp
+*.iml
 
 # Android
 android/.gradle/
@@ -20,43 +22,30 @@ android/app/*.keystore
 *.jks
 *.keystore
 
-# iOS
+# iOS / macOS
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
 
-# Windows
-windows/flutter/ephemeral/
-
-# Environment / secrets (never commit real credentials)
+# Secrets and environment config (never commit)
 .env
 .env.*
-*.secrets.dart
-config/production.json
+*.secrets.json
+lib/core/config/env.local.dart
 
-# Serious Python build staging (see docs/BUILD_AND_RELEASE.md)
-build/python-app/
-build/python-site-packages/
+# Node (CodeMirror bundle build)
+node_modules/
 
-# Misc
-coverage/
-*.log
+# OS
 .DS_Store
-
-# Scratch output from tool/ shell commands
-tool/*.txt
-
-# Generated into web/ by `dart run sqflite_common_ffi_web:setup`.
-# Not vendored: the web build fetches a third-party binary, and this is a
-# child-safety app, so the step stays explicit and visible in CI.
-# See docs/BUILD_AND_RELEASE.md.
-web/sqlite3.wasm
-web/sqflite_sw.js
-
-# Python bytecode
-__pycache__/
-*.pyc
 Thumbs.db
+
+# Local generated artifacts
+__pycache__/
+*.py[cod]
+outputs/
+tool/*.txt
+ios/Flutter/ephemeral/
+web/sqflite_sw.js
+web/sqlite3.wasm

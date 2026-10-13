@@ -1,11 +1,11 @@
 {
-    "name": "skillbridge_python_lab",
-    "short_name": "skillbridge_python_lab",
+    "name": "SkillsBridg Academy",
+    "short_name": "SkillsBridg",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "SkillsBridg Academy — friendly Python learning for every learner.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,5 +1,5 @@
 name: skillbridge_python_lab
-description: "SkillBridge Python Lab - an offline-first mobile Python coding practice app for SKILLBRIDGE Digital Talent & Outsourcing Academy."
+description: "SkillsBridg Academy - an offline-first mobile Python coding and learning app."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -28,6 +28,7 @@ dependencies:
   # Networking for the LMS integration layer.
   http: ^1.2.2
   connectivity_plus: ^6.1.0
+  video_player: ^2.9.2
 
   # Lightweight preferences (theme, editor settings).
   shared_preferences: ^2.3.3
